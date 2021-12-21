@@ -43,6 +43,32 @@ class JTAGAtlantic(Module):
             o_t_ena = source.valid,
         )
 
+# Altera SLD_VIRTUAL_JTAG --------------------------------------------------------------------------
+
+class AlteraVirtualJTAG(Module):
+    def __init__(self):
+        self.reset   = Signal()
+        self.capture = Signal()
+        self.shift   = Signal()
+        self.update  = Signal()
+
+        self.tck = Signal()
+        self.tms = Signal()
+        self.tdi = Signal()
+        self.tdo = Signal()
+
+        self.specials += Instance("sld_virtual_jtag",
+            o_tck = self.tck,
+            o_tms = self.tms,
+            o_tdi = self.tdi,
+            i_tdo = self.tdo,
+
+            o_virtual_state_sdr = self.shift,
+            o_virtual_state_udr = self.update,
+            o_virtual_state_cdr = self.capture,
+            o_jtag_state_tlr = self.reset,
+        )
+
 # Xilinx JTAG --------------------------------------------------------------------------------------
 
 class XilinxJTAG(Module):
@@ -178,6 +204,8 @@ class JTAGPHY(Module):
                 jtag = USJTAG(chain=chain)
             elif device[:5] == "LFE5U":
                 jtag = ECP5JTAG()
+            elif device[:2] == "5C":
+                jtag = AlteraVirtualJTAG()
             else:
                 print(device)
                 raise NotImplementedError
